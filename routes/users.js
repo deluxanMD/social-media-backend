@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const bcrypt = require('bcrypt');
+const { json } = require('express');
 const User = require('../models/User');
 
 // Update user
@@ -57,6 +58,26 @@ router.get('/:id', async (req, res) => {
 });
 
 // Follow user
+router.put('/:id/follow', async (req, res) => {
+  const { id } = req.params;
+  const { userId } = req.body;
+
+  if (userId !== id) {
+    try {
+      const targetUser = await User.findById(id);
+      const currentUser = await User.findById(userId);
+      if (!targetUser.followers.includes(userId)) {
+        await targetUser.updateOne({ $push: { followers: userId } });
+        await currentUser.updateOne({ $push: { followings: id } });
+        res.status(200).json('User has been followed');
+      } else {
+        res.status(403).json('You already follow this user');
+      }
+    } catch (error) {}
+  } else {
+    res.status(403).json('You cannot follow yourself');
+  }
+});
 
 // Unfollow user
 
