@@ -16,8 +16,24 @@ router.post('/register', async (req, res) => {
     const user = await newUser.save();
     res.status(201).json(user);
   } catch (error) {
-    console.log(error);
-    res.status(500).send('Something went wrong');
+    res.status(500).json('Something went wrong');
+  }
+});
+
+// LOGIN
+router.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    // Check user exist or not
+    const user = await User.findOne({ email });
+    !user && res.status(404).json('User not found');
+
+    // Compare the bcrypt password with user input
+    const validPassword = await bcrypt.compare(password, user.password);
+    !validPassword && res.status(404).json('Wrong password');
+  } catch (error) {
+    res.status(500).json('Something went wrong');
   }
 });
 
